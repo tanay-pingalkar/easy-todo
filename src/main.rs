@@ -74,9 +74,14 @@ fn main() {
 fn widget() -> impl Widget<State> {
     let label = Label::new(|_: &State, _: &Env| "TODO".to_string()).with_text_size(25.0);
 
-    let label2 = Label::new(|_: &State, _: &Env| "incomplete".to_string()).with_text_size(20.0);
+    let label2 = Label::new(|State { completed, .. }: &State, _: &Env| {
+        format!("completed-{}", completed.len())
+    })
+    .with_text_size(20.0);
 
-    let label3 = Label::new(|_: &State, _: &Env| "completed".to_string()).with_text_size(20.0);
+    let label3 =
+        Label::new(|State { todos, .. }: &State, _: &Env| format!("imcomplete-{}", todos.len()))
+            .with_text_size(20.0);
 
     Flex::column()
         .with_spacer(10.0)
@@ -84,10 +89,10 @@ fn widget() -> impl Widget<State> {
         .with_spacer(10.0)
         .with_child(input())
         .with_spacer(20.0)
-        .with_child(label2)
+        .with_child(label3)
         .with_child(todos())
         .with_spacer(20.0)
-        .with_child(label3)
+        .with_child(label2)
         .with_child(completed())
 }
 
@@ -139,7 +144,6 @@ fn todos() -> impl Widget<State> {
             .with_flex_child(
                 Button::new("remove")
                     .on_click(move |_ctx, (state, item): &mut (State, Todo), _env| {
-                        println!("redo");
                         state.todos.retain(|v| v.id != item.id);
                         let todos = Todos {
                             completed: state.completed.iter().map(|val| val.clone()).collect(),
